@@ -1,6 +1,7 @@
 import random
 
 import moderngl_window as mglw
+from Effect import Effect
 
 
 class App(mglw.WindowConfig):
@@ -16,14 +17,18 @@ class App(mglw.WindowConfig):
                                          fragment_shader='fragment.glsl')
         self.program['u_resolution'] = self.window_size
 
+        self.effect = Effect()
+        self.spawn_point = (0, 0, 0)
+        self.effect.explode(self.spawn_point)
+
         self.particle_array = []
-        self.sphere_radius = 1
-        self.recreate()
+        self.sphere_radius_array = []
+        self.respawn()
 
     def render(self, time: float, frame_time: float):
-        #self.move_particles(0.0, -0.05, 0.0)
-        #self.shrink_particles(0.01)
+
         self.update_particles()
+
         self.ctx.clear()
         self.quad.render(self.program)
 
@@ -31,23 +36,26 @@ class App(mglw.WindowConfig):
         self.program['u_mouse'] = x + dx, y + dy
 
     def mouse_press_event(self, x: int, y: int, button: int):
-        self.recreate()
+        self.respawn()
+        self.effect.explode(self.spawn_point)
 
-    def recreate(self, size=50):
-        array = [(random.random(), random.random(), random.random()) for _ in range(size)]
-        self.particle_array = array
-        self.sphere_radius = 1
+    def respawn(self):
+        self.spawn_point = [round(random.random(), 2) for _ in range(3)]
+        self.spawn_point[1] -= 6
 
-    def move_particles(self, dx, dy, dz):
-        self.particle_array = [(p[0] + dx, p[1] + dy, p[2] + dz) for p in self.particle_array]
-    
-    def shrink_particles(self, amount):
-        self.sphere_radius -= amount if self.sphere_radius > 0 else 0
-    
+    def create_arrays(self):
+        self.particle_array = [(p.x, p.y, p.z) for p in self.effect.particles]
+        self.sphere_radius_array = [round(p.radius, 2) for p in self.effect.particles]
+
+        self.program['particle_array'] = self.particle_array
+        self.program['sphere_radius_array'] = self.sphere_radius_array
+
     def update_particles(self):
-        self.program['random_array'] = self.particle_array
-        self.program['sphere_radius'] = self.sphere_radius
+        self.effect.update()
+        self.create_arrays()
+        # print('----------------\n', self.particle_array,  '\n', self.sphere_radius_array)
 
 
 if __name__ == '__main__':
     mglw.run_window_config(App)
+

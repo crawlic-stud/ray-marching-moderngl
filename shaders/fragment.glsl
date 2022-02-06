@@ -6,12 +6,12 @@ const float FOV = 1.0;
 const int MAX_STEPS = 256;
 const float MAX_DIST = 500;
 const float EPSILON = 0.001;
-const int ARRAY_SIZE = 50;
+const int ARRAY_SIZE = 60;
 
-uniform float sphere_radius;
+uniform float sphere_radius_array[ARRAY_SIZE];
 uniform vec2 u_resolution;
 uniform vec2 u_mouse;
-uniform vec3 random_array[ARRAY_SIZE];
+uniform vec3 particle_array[ARRAY_SIZE];
 
 
 vec2 fOpUnionID(vec2 res1, vec2 res2) {
@@ -30,24 +30,19 @@ vec2 map(vec3 p) {
     vec2 plane = vec2(planeDist, planeID);
 
     // box
-    float boxDist = fBox(p, vec3(0.5, 1, 0.5));
+    float boxDist = fBox(p, vec3(0.1, 0.1, 0.1));
     float boxID = 3.0;
     vec2 box = vec2(boxDist, boxID);
 
-    // spheres
-    vec2 spheres = fOpUnionID(box, plane);
+    // result
+    vec2 res = fOpUnionID(box, plane);
     float sphereID = 1.0;
 
     for (int i = 0; i < ARRAY_SIZE; i++) {
-        vec3 offset = vec3(i, i, i);
-        float sphereDist = fSphere(p + random_array[i], sphere_radius);
+        float sphereDist = fSphere(p + particle_array[i], sphere_radius_array[i]);
         vec2 sphere = vec2(sphereDist, sphereID);
-        spheres = fOpUnionID(spheres, sphere);
+        res = fOpUnionID(res, sphere);
     }
-
-    // result
-    vec2 res;
-    res = spheres;
 
     return res;
 }
@@ -97,7 +92,8 @@ vec3 getMaterial(vec3 p, float id) {
         case 1:
         m = vec3(0.9, 0.9, 0); break;
         case 2:
-        m = vec3(0.2 + 0.4 * mod(floor(p.x) + floor(p.z), 2.0)); break;
+        // m = vec3(0.2 + 0.4 * mod(floor(p.x) + floor(p.z), 2.0)); break;
+        m = vec3(0.1, 0.3, 0.2); break;
     }
     return m;
 }
@@ -119,7 +115,7 @@ void mouseControl(inout vec3 ro) {
 
 void render(inout vec3 col, in vec2 uv) {
     // camera position
-    vec3 ro = vec3(3.0, 3.0, -5.0);
+    vec3 ro = vec3(3.0, 10.0, -15.0);
     mouseControl(ro);
 
     // where camera pointed
@@ -133,9 +129,9 @@ void render(inout vec3 col, in vec2 uv) {
         vec3 p = ro + object.x * rd;
         vec3 material = getMaterial(p, object.y);
         col += getLight(p, rd, material);
-        //col += material;
+        // col += material;
         // fog
-        col = mix(col, background, 1.0 - exp(-0.0008 * object.x * object.x));
+        col = mix(col, background, 1.0 - exp(-0.00008 * object.x * object.x));
     } else {
         col += background - max(0.95 * rd.y, 0.0);
     }
