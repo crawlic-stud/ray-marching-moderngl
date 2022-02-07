@@ -43,7 +43,7 @@ class Effect:
 
     def explode(self, pos):
         self.particles = explosion_effect(size=0.1,
-                                          amount=60,
+                                          amount=50,
                                           pos=pos,
                                           ball_radius=0.5)
         print([[p.x, p.y, p.z] for p in self.particles])

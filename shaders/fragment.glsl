@@ -6,7 +6,7 @@ const float FOV = 1.0;
 const int MAX_STEPS = 256;
 const float MAX_DIST = 500;
 const float EPSILON = 0.001;
-const int ARRAY_SIZE = 60;
+const int ARRAY_SIZE = 50;
 
 uniform float sphere_radius_array[ARRAY_SIZE];
 uniform vec2 u_resolution;
@@ -129,7 +129,7 @@ void render(inout vec3 col, in vec2 uv) {
         vec3 p = ro + object.x * rd;
         vec3 material = getMaterial(p, object.y);
         col += getLight(p, rd, material);
-        // col += material;
+        col += material;
         // fog
         col = mix(col, background, 1.0 - exp(-0.00008 * object.x * object.x));
     } else {
